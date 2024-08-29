@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { sample } from "../../utils";
 import { checkGuess } from "../../game-helpers";
@@ -36,6 +36,29 @@ function SadBanner() {
 function Game() {
   const [guessList, setGuessList] = useState([]);
   const [status, setStatus] = useState("running");
+  const [remainingTime, setRemainingTime] = useState(60);
+  const [className, setClassName] = useState("");
+
+  useEffect(() => {
+    let timerId;
+    if (status !== "won") {
+      if (remainingTime > 0) {
+        timerId = setInterval(() => {
+          setRemainingTime((prev) => prev - 1);
+        }, 1000);
+      } else {
+        setStatus("lost");
+      }
+    }
+
+    if (remainingTime <= 10) {
+      setClassName("timer almost-finish");
+    }
+
+    return function cleanup() {
+      clearInterval(timerId);
+    };
+  }, [remainingTime, status]);
 
   const isGuessCorrect = (guess) => {
     let isCorrect = true;
@@ -62,6 +85,9 @@ function Game() {
 
   return (
     <>
+      <p>
+        Remaining time: <strong className={className}>{remainingTime}</strong>
+      </p>
       <GuessList guessList={guessList} />
       {status === "running" && <GuessInput addNewGuess={addNewGuess} />}
       {status === "won" && <HappyBanner numberOfGuesses={guessList.length} />}
